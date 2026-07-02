@@ -116,48 +116,29 @@ function LandingPage() {
             </div>
           </div>
 
-          {/* Hero deal card */}
+          {/* Hero Process Steps */}
           <div className="relative">
             <div className="absolute -inset-20 bg-brand-secondary/10 blur-[100px] rounded-full" />
-            <div className="relative bg-surface border border-border-glow rounded-3xl p-6 shadow-2xl">
-              <div className="flex justify-between items-center mb-8">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase font-bold tracking-widest mb-1">
-                    Escrow ID #LX-9902
-                  </p>
-                  <h3 className="text-xl font-bold text-white">Landed Property Purchase</h3>
-                </div>
-                <div className="bg-brand-primary/20 text-brand-primary px-3 py-1 rounded-md text-xs font-bold">
-                  FUNDED
-                </div>
-              </div>
-
-              <div className="space-y-4 mb-8">
-                <div className="p-4 bg-brand-bg/50 rounded-xl border border-border-glow">
-                  <p className="text-xs text-slate-500 mb-1">Nomba Virtual Account</p>
-                  <p className="text-2xl font-mono-tight font-bold text-white tracking-wider text-center py-2">
-                    9920 3844 11
-                  </p>
-                  <p className="text-[10px] text-center text-slate-400 uppercase tracking-tighter">
-                    Expires in 23:14:02
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-brand-bg/30 rounded-xl">
-                    <p className="text-xs text-slate-500 mb-1">Buyer (You)</p>
-                    <p className="text-sm font-bold">₦4,500,000.00</p>
+            <div className="relative bg-surface border border-border-glow rounded-3xl p-8 shadow-2xl space-y-6">
+              <h3 className="text-2xl font-bold text-white mb-6">How LockPay Works</h3>
+              <div className="space-y-6">
+                {[
+                  { step: "01", title: "Create Deal", desc: "Set amount, conditions and invite counterparty.", icon: Wallet },
+                  { step: "02", title: "Fund Vault", desc: "Send money to a dedicated Nomba virtual account.", icon: LockKeyhole },
+                  { step: "03", title: "Confirm Delivery", desc: "Both parties verify terms are met.", icon: ShieldCheck },
+                  { step: "04", title: "Get Paid", desc: "Instant split: 97% to seller, 3% platform fee.", icon: Split },
+                ].map((item) => (
+                  <div key={item.step} className="flex items-start gap-4 p-4 rounded-xl border border-border-glow bg-brand-bg/30">
+                    <div className="size-12 rounded-full bg-brand-primary/20 flex items-center justify-center shrink-0">
+                      <span className="font-mono-tight font-bold text-brand-primary">{item.step}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white">{item.title}</h4>
+                      <p className="text-sm text-slate-400 mt-1">{item.desc}</p>
+                    </div>
                   </div>
-                  <div className="p-4 bg-brand-bg/30 rounded-xl">
-                    <p className="text-xs text-slate-500 mb-1">Vendor</p>
-                    <p className="text-sm font-bold">Akin Ola-Lekan</p>
-                  </div>
-                </div>
+                ))}
               </div>
-
-              <button className="w-full py-4 bg-brand-primary text-brand-bg font-bold rounded-xl hover:opacity-90 transition-opacity">
-                Confirm Delivery to Release Funds
-              </button>
             </div>
           </div>
         </div>

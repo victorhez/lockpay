@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: lockpay-backend
+    env: python
+    region: ohio
+    plan: free
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PROJECT_NAME
+        value: LockPay API
+      - key: VERSION
+        value: 0.1.0
+      - key: API_V1_STR
+        value: /api/v1
+      - key: ENVIRONMENT
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 60
+      - key: NOMBA_BASE_URL
+        value: https://api.nomba.com
+      - key: NOMBA_PARENT_ACCOUNT_ID
+        fromSecret: nombaParentAccountId
+      - key: NOMBA_SUB_ACCOUNT_ID
+        fromSecret: nombaSubAccountId
+      - key: NOMBA_TEST_CLIENT_ID
+        fromSecret: nombaTestClientId
+      - key: NOMBA_TEST_PRIVATE_KEY
+        fromSecret: nombaTestPrivateKey
+      - key: NOMBA_LIVE_CLIENT_ID
+        fromSecret: nombaLiveClientId
+      - key: NOMBA_LIVE_PRIVATE_KEY
+        fromSecret: nombaLivePrivateKey
+      - key: NOMBA_WEBHOOK_SECRET
+        fromSecret: nombaWebhookSecret
+      - key: DATABASE_URL
+        value: sqlite:///./lockpay.db
