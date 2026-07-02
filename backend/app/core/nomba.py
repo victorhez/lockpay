@@ -132,16 +132,42 @@ class NombaClient:
 
         return await self._make_request("POST", "/v1/payments/initiate", payload)
 
-    def verify_webhook(self, payload: str, signature: str) -> bool:
+    def verify_webhook(self, payload: str, signature: str, timestamp: str) -> bool:
         if not settings.NOMBA_WEBHOOK_SECRET:
             return True  # Allow all in dev if no secret set
 
-        computed_signature = hmac.new(
-            settings.NOMBA_WEBHOOK_SECRET.encode(),
-            payload.encode(),
-            hashlib.sha256
-        ).hexdigest()
-        return hmac.compare_digest(computed_signature, signature)
+        import json
+        try:
+            data = json.loads(payload)
+            event_type = data.get("event_type", "")
+            request_id = data.get("requestId", "")
+            merchant = data.get("data", {}).get("merchant", {})
+            user_id = merchant.get("userId", "")
+            wallet_id = merchant.get("walletId", "")
+            transaction = data.get("data", {}).get("transaction", {})
+            transaction_id = transaction.get("transactionId", "")
+            transaction_type = transaction.get("type", "")
+            transaction_time = transaction.get("time", "")
+            response_code = transaction.get("responseCode", "")
+            if response_code is None:
+                response_code = ""
+
+            # Format signature payload as per Nomba docs
+            hashing_payload = (
+                f"{event_type}:{request_id}:{user_id}:{wallet_id}:{transaction_id}:{transaction_type}:{transaction_time}:{response_code}:{timestamp}"
+            )
+
+            # Compute HMAC SHA256 and encode to Base64
+            h = hmac.new(
+                settings.NOMBA_WEBHOOK_SECRET.encode(),
+                hashing_payload.encode(),
+                hashlib.sha256
+            )
+            computed_signature = base64.b64encode(h.digest()).decode()
+            return hmac.compare_digest(computed_signature, signature)
+        except Exception as e:
+            print(f"Error verifying webhook: {e}")
+            return False
 
 
 nomba_client = NombaClient()

@@ -21,6 +21,35 @@ class User(Base):
     # Relationships
     deals_buyer = relationship("Deal", foreign_keys="Deal.buyer_id", back_populates="buyer")
     deals_seller = relationship("Deal", foreign_keys="Deal.seller_id", back_populates="seller")
+    wallet = relationship("Wallet", back_populates="user", uselist=False)
+
+
+class Wallet(Base):
+    __tablename__ = "wallets"
+
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"), unique=True, nullable=False)
+    balance = Column(Float, default=0.0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationships
+    user = relationship("User", back_populates="wallet")
+    transactions = relationship("Transaction", back_populates="wallet")
+
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    id = Column(String, primary_key=True, index=True)
+    wallet_id = Column(String, ForeignKey("wallets.id"), nullable=False)
+    amount = Column(Float, nullable=False)
+    type = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    wallet = relationship("Wallet", back_populates="transactions")
 
 
 class Deal(Base):

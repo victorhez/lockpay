@@ -1,3 +1,9 @@
+databases:
+  - name: lockpay-db
+    databaseName: lockpay
+    user: lockpay
+    plan: free
+
 services:
   - type: web
     name: lockpay-backend
@@ -36,4 +42,7 @@ services:
       - key: NOMBA_WEBHOOK_SECRET
         fromSecret: nombaWebhookSecret
       - key: DATABASE_URL
-        value: sqlite:///./lockpay.db
+        fromDatabase:
+          name: lockpay-db
+          property: connectionString
+
