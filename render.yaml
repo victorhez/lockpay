@@ -8,7 +8,6 @@ services:
   - type: web
     name: lockpay-backend
     env: python
-    pythonVersion: 3.11
     region: ohio
     plan: free
     buildCommand: cd backend && pip install -r requirements.txt
