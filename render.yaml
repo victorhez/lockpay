@@ -28,19 +28,19 @@ services:
       - key: NOMBA_BASE_URL
         value: https://api.nomba.com
       - key: NOMBA_PARENT_ACCOUNT_ID
-        fromSecret: nombaParentAccountId
+        value: ""
       - key: NOMBA_SUB_ACCOUNT_ID
-        fromSecret: nombaSubAccountId
+        value: ""
       - key: NOMBA_TEST_CLIENT_ID
-        fromSecret: nombaTestClientId
+        value: ""
       - key: NOMBA_TEST_PRIVATE_KEY
-        fromSecret: nombaTestPrivateKey
+        value: ""
       - key: NOMBA_LIVE_CLIENT_ID
-        fromSecret: nombaLiveClientId
+        value: ""
       - key: NOMBA_LIVE_PRIVATE_KEY
-        fromSecret: nombaLivePrivateKey
+        value: ""
       - key: NOMBA_WEBHOOK_SECRET
-        fromSecret: nombaWebhookSecret
+        value: ""
       - key: DATABASE_URL
         fromDatabase:
           name: lockpay-db
