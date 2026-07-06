@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     NOMBA_WEBHOOK_SECRET: Optional[str] = None
     DATABASE_URL: str = "sqlite:///./lockpay.db"
     ENVIRONMENT: str = "test"
-    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173,https://lockpay-eight.vercel.app"
 
     @property
     def cors_origins_list(self) -> List[str]:
