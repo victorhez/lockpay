@@ -43,6 +43,8 @@ services:
         value: ""
       - key: NOMBA_WEBHOOK_SECRET
         value: ""
+      - key: CORS_ORIGINS
+        value: http://localhost:3000,http://localhost:5173,https://lockpay-eight.vercel.app
       - key: DATABASE_URL
         fromDatabase:
           name: lockpay-db
