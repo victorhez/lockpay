@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, ShieldCheck, LockKeyhole, Activity, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, type Deal } from "@/lib/api";
 
 export const Route = createFileRoute("/dashboard/")({
   head: () => ({ meta: [{ title: "Overview — LockPay" }] }),
@@ -31,7 +31,7 @@ const tintFor = (s: string) => {
 };
 
 function Overview() {
-  const { data: deals = [], isLoading } = useQuery({
+  const { data: deals = [], isLoading } = useQuery<Deal[]>({
     queryKey: ["deals"],
     queryFn: api.getDeals,
   });

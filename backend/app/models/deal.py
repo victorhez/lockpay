@@ -69,6 +69,8 @@ class Deal(DealBase):
     virtual_account_number: Optional[str] = None
     virtual_account_bank: Optional[str] = None
     nominal_account_reference: Optional[str] = None
+    buyer_confirmed_rendered: bool = False
+    seller_confirmed_rendered: bool = False
 
     class Config:
         from_attributes = True

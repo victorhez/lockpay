@@ -24,11 +24,11 @@ export function SiteFooter() {
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Verticals</p>
           <ul className="space-y-2 text-sm text-slate-500">
-            <li><Link to="/solutions/rentals" className="hover:text-brand-primary">House Rentals</Link></li>
-            <li><Link to="/solutions/land" className="hover:text-brand-primary">Land & Property</Link></li>
-            <li><Link to="/solutions/marketplace" className="hover:text-brand-primary">Marketplace</Link></li>
-            <li><Link to="/solutions/freelance" className="hover:text-brand-primary">Freelance</Link></li>
-            <li><Link to="/solutions/crypto" className="hover:text-brand-primary">Crypto OTC</Link></li>
+            <li><Link to="/solutions/$vertical" params={{ vertical: "rentals" }} className="hover:text-brand-primary">House Rentals</Link></li>
+            <li><Link to="/solutions/$vertical" params={{ vertical: "land" }} className="hover:text-brand-primary">Land & Property</Link></li>
+            <li><Link to="/solutions/$vertical" params={{ vertical: "marketplace" }} className="hover:text-brand-primary">Marketplace</Link></li>
+            <li><Link to="/solutions/$vertical" params={{ vertical: "freelance" }} className="hover:text-brand-primary">Freelance</Link></li>
+            <li><Link to="/solutions/$vertical" params={{ vertical: "crypto" }} className="hover:text-brand-primary">Crypto OTC</Link></li>
           </ul>
         </div>
       </div>

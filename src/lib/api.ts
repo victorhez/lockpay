@@ -1,5 +1,79 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
 
+// Type definitions
+export interface User {
+  id: string;
+  email: string;
+  phone: string;
+  full_name: string;
+  role: string;
+  kyc_tier: number;
+  payout_bank_name?: string | null;
+  payout_account_number?: string | null;
+}
+
+export interface Deal {
+  id: string;
+  title: string;
+  description: string;
+  vertical: string;
+  amount: number;
+  currency: string;
+  buyer_id: string;
+  seller_id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  expiry_date?: string;
+  virtual_account_number?: string;
+  virtual_account_bank?: string;
+  nominal_account_reference?: string;
+  buyer_confirmed_rendered?: boolean;
+  seller_confirmed_rendered?: boolean;
+}
+
+export interface Wallet {
+  id: string;
+  user_id: string;
+  balance: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Transaction {
+  id: string;
+  wallet_id: string;
+  amount: number;
+  type: string;
+  description?: string;
+  created_at: string;
+}
+
+export interface DealAnalytics {
+  visits_count: number;
+  activities: DealActivity[];
+  reviews: Review[];
+}
+
+export interface DealActivity {
+  id: string;
+  deal_id: string;
+  user_id?: string;
+  activity_type: string;
+  description?: string;
+  created_at: string;
+}
+
+export interface Review {
+  id: string;
+  deal_id: string;
+  reviewer_id: string;
+  reviewee_id: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+}
+
 export interface ApiError {
   success: false;
   message: string;
@@ -16,7 +90,7 @@ export interface SuccessResponse<T> {
 export class ApiErrorException extends Error {
   public error_code?: string;
   public details?: Record<string, string>;
-  
+
   constructor(message: string, error_code?: string, details?: Record<string, string>) {
     super(message);
     this.name = "ApiErrorException";
@@ -83,7 +157,7 @@ class ApiClient {
     full_name: string;
     role: string;
   }) {
-    return this.request("/auth/register", {
+    return this.request<{ access_token: string; token_type: string; user: User }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -114,7 +188,7 @@ class ApiClient {
       );
     }
 
-    const success = result as SuccessResponse<{ access_token: string; token_type: string; user: any }>;
+    const success = result as SuccessResponse<{ access_token: string; token_type: string; user: User }>;
     if (success.data?.access_token) {
       this.setToken(success.data.access_token);
     }
@@ -122,57 +196,105 @@ class ApiClient {
   }
 
   async getUsers() {
-    return this.request("/users/");
+    return this.request<User[]>("/users/");
   }
 
   async getUser(userId: string) {
-    return this.request(`/users/${userId}`);
+    return this.request<User>(`/users/${userId}`);
   }
 
-  async createDeal(data: any) {
-    return this.request("/deals/", {
+  async getUserByEmail(email: string) {
+    return this.request<User>(`/users/email/${encodeURIComponent(email)}`);
+  }
+
+  async getCurrentUser() {
+    return this.request<User>("/users/me");
+  }
+
+  async updateCurrentUser(data: Partial<User>) {
+    return this.request<User>("/users/me", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createDeal(data: Omit<Deal, "id" | "created_at" | "updated_at" | "buyer_confirmed_rendered" | "seller_confirmed_rendered">) {
+    return this.request<Deal>("/deals/", {
       method: "POST",
       body: JSON.stringify(data),
     });
   }
 
   async getDeals() {
-    return this.request("/deals/");
+    return this.request<Deal[]>("/deals/");
   }
 
   async getUserDeals(userId: string) {
-    return this.request(`/deals/user/${userId}`);
+    return this.request<Deal[]>(`/deals/user/${userId}`);
   }
 
   async getDeal(dealId: string) {
-    return this.request(`/deals/${dealId}`);
+    return this.request<Deal>(`/deals/${dealId}`);
   }
 
-  async updateDeal(dealId: string, data: any) {
-    return this.request(`/deals/${dealId}`, {
+  async updateDeal(dealId: string, data: Partial<Deal>) {
+    return this.request<Deal>(`/deals/${dealId}`, {
       method: "PUT",
       body: JSON.stringify(data),
     });
   }
 
   async fundDeal(dealId: string) {
-    return this.request(`/deals/${dealId}/fund`, { method: "POST" });
+    return this.request<{ deal_id: string; new_status: string }>(`/deals/${dealId}/fund`, {
+      method: "POST",
+    });
   }
 
   async conditionMet(dealId: string) {
-    return this.request(`/deals/${dealId}/condition-met`, { method: "POST" });
+    return this.request<{ deal_id: string; new_status: string }>(`/deals/${dealId}/condition-met`, {
+      method: "POST",
+    });
   }
 
   async releaseDeal(dealId: string) {
-    return this.request(`/deals/${dealId}/release`, { method: "POST" });
+    return this.request<{ deal_id: string; new_status: string; seller_amount: number; platform_fee: number }>(`/deals/${dealId}/release`, {
+      method: "POST",
+    });
   }
 
   async disputeDeal(dealId: string) {
-    return this.request(`/deals/${dealId}/dispute`, { method: "POST" });
+    return this.request<{ deal_id: string; new_status: string }>(`/deals/${dealId}/dispute`, {
+      method: "POST",
+    });
   }
 
   async refundDeal(dealId: string) {
-    return this.request(`/deals/${dealId}/refund`, { method: "POST" });
+    return this.request<{ deal_id: string; new_status: string }>(`/deals/${dealId}/refund`, {
+      method: "POST",
+    });
+  }
+
+  async trackDealVisit(dealId: string) {
+    return this.request<void>(`/deals/${dealId}/visit`, {
+      method: "POST",
+    });
+  }
+
+  async getDealAnalytics(dealId: string) {
+    return this.request<DealAnalytics>(`/deals/${dealId}/analytics`);
+  }
+
+  async confirmServiceRendered(dealId: string) {
+    return this.request<Deal>(`/deals/${dealId}/confirm-rendered`, {
+      method: "POST",
+    });
+  }
+
+  async createReview(dealId: string, reviewData: { rating: number; comment?: string }) {
+    return this.request<Review>(`/deals/${dealId}/reviews`, {
+      method: "POST",
+      body: JSON.stringify(reviewData),
+    });
   }
 
   async createDispute(data: any) {
@@ -191,15 +313,25 @@ class ApiClient {
   }
 
   async createWallet(userId: string) {
-    return this.request(`/wallets/?user_id=${userId}`, { method: "POST" });
+    return this.request<Wallet>(`/wallets/?user_id=${userId}`, {
+      method: "POST",
+    });
   }
 
   async getWalletByUser(userId: string) {
-    return this.request(`/wallets/user/${userId}`);
+    return this.request<Wallet>(`/wallets/user/${userId}`);
   }
 
   async getWalletTransactions(walletId: string) {
-    return this.request(`/wallets/${walletId}/transactions`);
+    return this.request<Transaction[]>(`/wallets/${walletId}/transactions`);
+  }
+
+  async getCurrentWallet() {
+    return this.request<Wallet>("/wallets/me");
+  }
+
+  async getCurrentWalletTransactions() {
+    return this.request<Transaction[]>("/wallets/me/transactions");
   }
 }
 

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, type Deal } from "@/lib/api";
 
 export const Route = createFileRoute("/dashboard/deals")({
   head: () => ({ meta: [{ title: "Deals — LockPay" }] }),
@@ -35,7 +35,7 @@ const mapStatusToDisplay = (status: string) => {
 function Deals() {
   const [filter, setFilter] = useState<(typeof STATUSES)[number]>("All");
   
-  const { data: deals = [], isLoading } = useQuery({
+  const { data: deals = [], isLoading } = useQuery<Deal[]>({
     queryKey: ["deals"],
     queryFn: api.getDeals,
   });

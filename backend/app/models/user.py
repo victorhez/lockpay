@@ -28,10 +28,19 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    payout_bank_name: Optional[str] = None
+    payout_account_number: Optional[str] = None
+
+
 class User(UserBase):
     id: str
     is_active: bool = True
     kyc_tier: int = 0
+    payout_bank_name: Optional[str] = None
+    payout_account_number: Optional[str] = None
 
     class Config:
         from_attributes = True

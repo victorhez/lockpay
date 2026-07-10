@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./lockpay.db"
     ENVIRONMENT: str = "test"
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173,https://lockpay-eight.vercel.app"
+    RESEND_API_KEY: Optional[str] = None
+    FROM_EMAIL: str = "notifications@lockpay.ng"
+    FRONTEND_URL: str = "https://lockpay-eight.vercel.app"
 
     @property
     def cors_origins_list(self) -> List[str]:

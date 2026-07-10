@@ -8,6 +8,8 @@ interface User {
   full_name: string;
   role: string;
   kyc_tier: number;
+  payout_bank_name?: string | null;
+  payout_account_number?: string | null;
 }
 
 interface AuthContextType {
@@ -16,6 +18,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -25,15 +28,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing token
-    const token = localStorage.getItem("auth_token");
-    if (token) {
-      api.setToken(token);
-      // In real app, we'd fetch the current user here
+    // Check for existing token and fetch user
+    const initAuth = async () => {
+      const token = localStorage.getItem("auth_token");
+      if (token) {
+        api.setToken(token);
+        try {
+          const currentUser = await api.getCurrentUser();
+          setUser(currentUser);
+        } catch (error) {
+          // Token invalid, clear it
+          api.clearToken();
+          localStorage.removeItem("auth_token");
+        }
+      }
       setIsLoading(false);
-    } else {
-      setIsLoading(false);
-    }
+    };
+    initAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -42,15 +53,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set user from API response
     if (result.user) {
       setUser(result.user);
-    } else {
-      setUser({
-        id: "1",
-        email,
-        phone: "+234 801 234 5678",
-        full_name: "Demo User",
-        role: "buyer",
-        kyc_tier: 1,
-      });
     }
   };
 
@@ -66,8 +68,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const refreshUser = async () => {
+    try {
+      const currentUser = await api.getCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -15,6 +15,8 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     kyc_tier = Column(Integer, default=0)
+    payout_bank_name = Column(String, nullable=True)
+    payout_account_number = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -22,6 +24,7 @@ class User(Base):
     deals_buyer = relationship("Deal", foreign_keys="Deal.buyer_id", back_populates="buyer")
     deals_seller = relationship("Deal", foreign_keys="Deal.seller_id", back_populates="seller")
     wallet = relationship("Wallet", back_populates="user", uselist=False)
+    reviews = relationship("Review", back_populates="reviewer")
 
 
 class Wallet(Base):
@@ -70,11 +73,16 @@ class Deal(Base):
     virtual_account_number = Column(String)
     virtual_account_bank = Column(String)
     nominal_account_reference = Column(String)
+    buyer_confirmed_rendered = Column(Boolean, default=False)
+    seller_confirmed_rendered = Column(Boolean, default=False)
 
     # Relationships
     buyer = relationship("User", foreign_keys=[buyer_id], back_populates="deals_buyer")
     seller = relationship("User", foreign_keys=[seller_id], back_populates="deals_seller")
     disputes = relationship("Dispute", back_populates="deal")
+    visits = relationship("DealVisit", back_populates="deal")
+    activities = relationship("DealActivity", back_populates="deal")
+    reviews = relationship("Review", back_populates="deal")
 
 
 class Dispute(Base):
@@ -92,3 +100,46 @@ class Dispute(Base):
 
     # Relationships
     deal = relationship("Deal", back_populates="disputes")
+
+
+class DealVisit(Base):
+    __tablename__ = "deal_visits"
+
+    id = Column(String, primary_key=True, index=True)
+    deal_id = Column(String, ForeignKey("deals.id"), nullable=False)
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    visited_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    deal = relationship("Deal", back_populates="visits")
+
+
+class DealActivity(Base):
+    __tablename__ = "deal_activities"
+
+    id = Column(String, primary_key=True, index=True)
+    deal_id = Column(String, ForeignKey("deals.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    activity_type = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    deal = relationship("Deal", back_populates="activities")
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(String, primary_key=True, index=True)
+    deal_id = Column(String, ForeignKey("deals.id"), nullable=False)
+    reviewer_id = Column(String, ForeignKey("users.id"), nullable=False)
+    reviewee_id = Column(String, ForeignKey("users.id"), nullable=False)
+    rating = Column(Integer, nullable=False)
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    deal = relationship("Deal", back_populates="reviews")
+    reviewer = relationship("User", foreign_keys=[reviewer_id], back_populates="reviews")

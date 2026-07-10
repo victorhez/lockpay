@@ -8,8 +8,50 @@ from ...models.wallet import Wallet, Transaction, TransactionCreate
 from ...models.common import SuccessResponse
 from ...models.db_models import Wallet as DBWallet, Transaction as DBTransaction, User as DBUser
 from ...core.database import get_db
+from ...core.security import get_current_user
 
 router = APIRouter()
+
+
+@router.get("/me", response_model=SuccessResponse[Wallet])
+async def get_current_user_wallet(current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_wallet = db.query(DBWallet).filter(DBWallet.user_id == current_user.id).first()
+    if not db_wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+    wallet = Wallet(
+        id=db_wallet.id,
+        user_id=db_wallet.user_id,
+        balance=db_wallet.balance,
+        created_at=db_wallet.created_at,
+        updated_at=db_wallet.updated_at
+    )
+    return SuccessResponse[Wallet](
+        data=wallet,
+        message="Wallet retrieved successfully"
+    )
+
+
+@router.get("/me/transactions", response_model=SuccessResponse[List[Transaction]])
+async def get_current_user_transactions(current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_wallet = db.query(DBWallet).filter(DBWallet.user_id == current_user.id).first()
+    if not db_wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+    db_transactions = db.query(DBTransaction).filter(DBTransaction.wallet_id == db_wallet.id).order_by(DBTransaction.created_at.desc()).all()
+    transactions = [
+        Transaction(
+            id=t.id,
+            wallet_id=t.wallet_id,
+            amount=t.amount,
+            type=t.type,
+            description=t.description,
+            created_at=t.created_at
+        )
+        for t in db_transactions
+    ]
+    return SuccessResponse[List[Transaction]](
+        data=transactions,
+        message="Transactions retrieved successfully"
+    )
 
 
 @router.post("/", response_model=SuccessResponse[Wallet], status_code=status.HTTP_201_CREATED)

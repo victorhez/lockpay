@@ -1,11 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Home, Map, ShoppingBag, Code2, Bitcoin } from "lucide-react";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { api, type User, ApiErrorException } from "@/lib/api";
 import { useAuth } from "@/lib/useAuth";
-import { ApiErrorException } from "@/lib/api";
 
 const VERTS = [
   { slug: "rentals", title: "House Rentals", icon: Home },
@@ -27,9 +26,17 @@ function NewDeal() {
   const [counterpartyEmail, setCounterpartyEmail] = useState("");
   const [deadline, setDeadline] = useState("");
   const [notes, setNotes] = useState("");
+  const [role, setRole] = useState<"buyer" | "seller">("buyer"); // Toggle for current user's role
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Query to get counterparty user by email
+  const { data: counterpartyUser, isLoading: isCounterpartyLoading } = useQuery<User | null | undefined>({
+    queryKey: ["counterparty", counterpartyEmail],
+    queryFn: () => counterpartyEmail ? api.getUserByEmail(counterpartyEmail) : null,
+    enabled: !!counterpartyEmail,
+  });
 
   const createMutation = useMutation({
     mutationFn: (data: any) => api.createDeal(data),
@@ -50,10 +57,23 @@ function NewDeal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsedAmount = parseFloat(amount.replace(/,/g, ""));
-    if (!title || !amount || isNaN(parsedAmount)) {
+    if (!title || !amount || isNaN(parsedAmount) || !counterpartyEmail) {
       toast.error("Please fill in all required fields");
       return;
     }
+
+    if (!user?.id) {
+      toast.error("You must be logged in to create a deal");
+      return;
+    }
+
+    if (!counterpartyUser?.id) {
+      toast.error("Counterparty not found with that email");
+      return;
+    }
+
+    const buyerId = role === "buyer" ? user.id : counterpartyUser.id;
+    const sellerId = role === "seller" ? user.id : counterpartyUser.id;
 
     createMutation.mutate({
       title,
@@ -61,8 +81,8 @@ function NewDeal() {
       vertical,
       amount: parsedAmount,
       currency: "NGN",
-      buyer_id: user?.id || "1",
-      seller_id: "2",
+      buyer_id: buyerId,
+      seller_id: sellerId,
     });
   };
 
@@ -93,6 +113,30 @@ function NewDeal() {
           </div>
         </div>
 
+        <div className="bg-surface border border-border-glow rounded-2xl p-6">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Your role in this deal</h3>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => setRole("buyer")}
+              className={`flex-1 py-3 px-4 rounded-xl border transition-all font-semibold ${
+                role === "buyer" ? "bg-brand-primary/10 border-brand-primary text-brand-primary" : "bg-brand-bg border-border-glow text-slate-400 hover:border-slate-600"
+              }`}
+            >
+              I'm the Buyer
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole("seller")}
+              className={`flex-1 py-3 px-4 rounded-xl border transition-all font-semibold ${
+                role === "seller" ? "bg-brand-primary/10 border-brand-primary text-brand-primary" : "bg-brand-bg border-border-glow text-slate-400 hover:border-slate-600"
+              }`}
+            >
+              I'm the Seller
+            </button>
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <label className="block">
@@ -112,7 +156,7 @@ function NewDeal() {
                 type="email"
                 value={counterpartyEmail}
                 onChange={(e) => setCounterpartyEmail(e.target.value)}
-                placeholder="seller@domain.com"
+                placeholder={role === "buyer" ? "seller@domain.com" : "buyer@domain.com"}
                 className="w-full px-4 py-3 bg-surface border border-border-glow rounded-xl text-white placeholder:text-slate-600 focus:outline-none focus:border-brand-primary"
                 disabled={createMutation.isPending}
               />

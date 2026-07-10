@@ -35,6 +35,18 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_db_user)
     db.commit()
     db.refresh(new_db_user)
+
+    # Create a wallet for the user
+    from ...models.db_models import Wallet as DBWallet
+    wallet_id = str(uuid.uuid4())
+    new_wallet = DBWallet(
+        id=wallet_id,
+        user_id=user_id,
+        balance=0.0
+    )
+    db.add(new_wallet)
+    db.commit()
+
     new_user = User(
         id=new_db_user.id,
         email=new_db_user.email,
@@ -42,7 +54,9 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         full_name=new_db_user.full_name,
         role=new_db_user.role,
         is_active=new_db_user.is_active,
-        kyc_tier=new_db_user.kyc_tier
+        kyc_tier=new_db_user.kyc_tier,
+        payout_bank_name=new_db_user.payout_bank_name,
+        payout_account_number=new_db_user.payout_account_number
     )
     return SuccessResponse[User](
         data=new_user,
@@ -66,7 +80,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         full_name=db_user.full_name,
         role=db_user.role,
         is_active=db_user.is_active,
-        kyc_tier=db_user.kyc_tier
+        kyc_tier=db_user.kyc_tier,
+        payout_bank_name=db_user.payout_bank_name,
+        payout_account_number=db_user.payout_account_number
     )
     access_token = create_access_token(data={"sub": db_user.email})
     return SuccessResponse[dict](
