@@ -11,7 +11,12 @@ from .models.common import ErrorResponse
 from .api.v1 import auth, deals, users, disputes, wallets, webhooks
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+try:
+    print("Creating database tables...")
+    Base.metadata.create_all(bind=engine)
+    print("Database tables created successfully!")
+except Exception as e:
+    print(f"Failed to create database tables: {e}")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
