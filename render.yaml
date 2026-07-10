@@ -3,6 +3,7 @@ databases:
     databaseName: lockpay
     user: lockpay
     plan: free
+    region: ohio
 
 services:
   - type: web
