@@ -36,7 +36,7 @@ async def send_deal_invitation(
     }
 
     try:
-        email = resend.Emails.send(params)
+        email = await resend.Emails.send_async(params)
         print(f"Sent invitation email to {to_email}, id: {email['id']}")
     except Exception as e:
         print(f"Failed to send email: {e}")
@@ -69,7 +69,7 @@ async def send_deal_status_update(
     }
 
     try:
-        email = resend.Emails.send(params)
+        email = await resend.Emails.send_async(params)
         print(f"Sent status update email to {to_email}, id: {email['id']}")
     except Exception as e:
         print(f"Failed to send email: {e}")
